@@ -1,4 +1,5 @@
 #include "jailbreak.h"
+#include "kernelrw.h"
 #include "utils.h"
 
 void jbc_run_as_root(void(*fn)(void* arg), void* arg, int cwd_mode)
@@ -128,4 +129,12 @@ int jbc_mount_in_sandbox(const char* system_path, const char* mnt_name)
 int jbc_unmount_in_sandbox(const char* mnt_name)
 {
     return jbc_mount_in_sandbox(0, mnt_name);
+}
+
+int jbc_set_proc_name(const char* New_Name)
+{
+    uintptr_t td = jbc_krw_get_td();
+    uintptr_t proc = jbc_krw_read64(td + 8, KERNEL_HEAP);
+
+    return jbc_krw_memcpy(proc + 0x44C, (uintptr_t)New_Name, 0x20, KERNEL_HEAP);
 }
