@@ -115,3 +115,16 @@ int jbc_krw_write64(uintptr_t p, KmemKind kind, uintptr_t val)
 {
     return jbc_krw_memcpy(p, (uintptr_t)&val, sizeof(val), kind);
 }
+
+uint32_t jbc_krw_read32(uintptr_t p, KmemKind kind)
+{
+    uint32_t ans;
+    if (jbc_krw_memcpy((uintptr_t)&ans, p, sizeof(ans), kind))
+        return -1;
+    return ans;
+}
+
+int jbc_krw_write32(uintptr_t p, KmemKind kind, uintptr_t val)
+{
+    return jbc_krw_memcpy(p, (uintptr_t)&val, sizeof(uint32_t), kind);
+}

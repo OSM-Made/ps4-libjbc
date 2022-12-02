@@ -138,3 +138,33 @@ int jbc_set_proc_name(const char* New_Name)
 
     return jbc_krw_memcpy(proc + 0x44C, (uintptr_t)New_Name, 0x20, KERNEL_HEAP);
 }
+
+int jbc_get_proc_libraries(struct LibraryInfo* out, int maxCount)
+{
+    uintptr_t td = jbc_krw_get_td();
+    uintptr_t proc = jbc_krw_read64(td + 8, KERNEL_HEAP);
+    uintptr_t dynlib = jbc_krw_read64(proc + 0x340, KERNEL_HEAP);
+    uint32_t objCount = jbc_krw_read32(dynlib + 0x28, KERNEL_HEAP);
+    uintptr_t objs = jbc_krw_read64(dynlib, KERNEL_HEAP);
+
+    int objCopied = 0;
+    while (objs != 0)
+    {
+        if (objCopied > maxCount)
+            break;
+
+        uintptr_t pathPtr = jbc_krw_read64(objs + 0x8, KERNEL_HEAP);
+        jbc_krw_memcpy((uintptr_t)out[objCopied].Path, pathPtr, 256, KERNEL_HEAP);
+        out[objCopied].ModuleHandle = jbc_krw_read64(objs + 0x28, KERNEL_HEAP);
+        out[objCopied].map_base = jbc_krw_read64(objs + 0x30, KERNEL_HEAP);
+        out[objCopied].map_size = jbc_krw_read64(objs + 0x38, KERNEL_HEAP);
+        out[objCopied].text_size = jbc_krw_read64(objs + 0x40, KERNEL_HEAP);
+        out[objCopied].data_base = jbc_krw_read64(objs + 0x48, KERNEL_HEAP);
+        out[objCopied].data_size = jbc_krw_read64(objs + 0x50, KERNEL_HEAP);
+
+        objs = jbc_krw_read64(objs, KERNEL_HEAP); // next obj
+        objCopied++;
+    }
+
+    return objCount;
+}
